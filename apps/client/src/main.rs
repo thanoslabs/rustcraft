@@ -110,7 +110,7 @@ impl ApplicationHandler for App {
             WindowEvent::RedrawRequested => {
                 self.update_camera();
                 if let Some(gpu) = &self.gpu {
-                    match gpu.render() {
+                    match gpu.render(&self.camera) {
                         Ok(()) => {}
                         Err(wgpu_error) => eprintln!("render error: {wgpu_error}"),
                     }
