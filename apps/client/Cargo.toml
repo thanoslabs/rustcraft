@@ -8,6 +8,8 @@ license.workspace = true
 rustcraft-core = { path = "../../crates/core" }
 rustcraft-world = { path = "../../crates/world" }
 rustcraft-render = { path = "../../crates/render" }
+winit = "0.30"
+pollster = "0.4"
 
 [lints]
 workspace = true
