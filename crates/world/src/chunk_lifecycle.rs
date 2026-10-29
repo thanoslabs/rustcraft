@@ -72,6 +72,12 @@ impl ChunkScheduler {
         Some(pos)
     }
 
+    pub fn defer(&mut self, pos: ChunkPos) {
+        if self.states.get(&pos) == Some(&ChunkState::Generating) {
+            self.states.insert(pos, ChunkState::Requested);
+        }
+    }
+
     pub fn complete(&mut self, pos: ChunkPos) -> bool {
         if self.states.get(&pos) != Some(&ChunkState::Generating) {
             return false;
