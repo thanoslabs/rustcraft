@@ -1,0 +1,87 @@
+name: Release binaries
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: rustcraft-client
+          - name: windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: rustcraft-client.exe
+          - name: macos-arm64
+            os: macos-15
+            target: aarch64-apple-darwin
+            binary: rustcraft-client
+          - name: macos-x86_64
+            os: macos-15
+            target: x86_64-apple-darwin
+            binary: rustcraft-client
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Build optimized client
+        run: cargo build --release --locked --package rustcraft-client --target ${{ matrix.target }}
+      - name: Package executable (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp "target/${{ matrix.target }}/release/${{ matrix.binary }}" dist/
+          cp README.md dist/README.md
+          tar -czf "rustcraft-${{ matrix.name }}.tar.gz" -C dist .
+      - name: Package executable (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item "target/${{ matrix.target }}/release/${{ matrix.binary }}" dist/
+          Copy-Item README.md dist/README.md
+          Compress-Archive -Path dist/* -DestinationPath "rustcraft-${{ matrix.name }}.zip"
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rustcraft-${{ matrix.name }}
+          path: rustcraft-${{ matrix.name }}.*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: rustcraft-*
+          path: dist
+          merge-multiple: true
+      - name: Publish tagged release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        shell: bash
+        run: |
+          gh release create "$TAG" dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --generate-notes --title "Rustcraft $TAG"
