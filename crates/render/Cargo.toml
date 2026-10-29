@@ -1,0 +1,12 @@
+[package]
+name = "rustcraft-render"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rustcraft-core = { path = "../core" }
+rustcraft-world = { path = "../world" }
+
+[lints]
+workspace = true
