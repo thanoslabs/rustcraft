@@ -126,7 +126,8 @@ impl ApplicationHandler for App {
                     self.frames = 0;
                     self.fps_since = Instant::now();
                 }
-                if let Some(gpu) = &self.gpu {
+                if let Some(gpu) = &mut self.gpu {
+                    gpu.update_world(&self.camera);
                     match gpu.render(&self.camera) {
                         Ok(()) => {}
                         Err(wgpu_error) => eprintln!("render error: {wgpu_error}"),
