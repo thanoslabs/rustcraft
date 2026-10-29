@@ -1,0 +1,13 @@
+[package]
+name = "rustcraft-client"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+rustcraft-core = { path = "../../crates/core" }
+rustcraft-world = { path = "../../crates/world" }
+rustcraft-render = { path = "../../crates/render" }
+
+[lints]
+workspace = true
