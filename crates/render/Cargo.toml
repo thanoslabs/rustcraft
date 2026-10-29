@@ -7,6 +7,8 @@ license.workspace = true
 [dependencies]
 rustcraft-core = { path = "../core" }
 rustcraft-world = { path = "../world" }
+wgpu = "26"
+winit = "0.30"
 
 [lints]
 workspace = true
