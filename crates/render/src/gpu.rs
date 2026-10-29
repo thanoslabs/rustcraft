@@ -173,43 +173,59 @@ impl Gpu {
     pub fn update_world(&mut self, camera: &Camera) {
         let cx = (f64::from(camera.position[0]) / 16.0).floor() as i64;
         let cz = (f64::from(camera.position[2]) / 16.0).floor() as i64;
-        self.scheduler_low.update_view(ChunkPos { x: cx, y: 0, z: cz }, 2);
-        self.scheduler_high.update_view(ChunkPos { x: cx, y: 1, z: cz }, 2);
+        self.scheduler_low
+            .update_view(ChunkPos { x: cx, y: 0, z: cz }, 2);
+        self.scheduler_high
+            .update_view(ChunkPos { x: cx, y: 1, z: cz }, 2);
 
         // Retain only meshes within the active view.
         self.meshes.retain(|pos, _| {
-            self.scheduler_low.state(*pos).is_some()
-                || self.scheduler_high.state(*pos).is_some()
+            self.scheduler_low.state(*pos).is_some() || self.scheduler_high.state(*pos).is_some()
         });
 
         // Bound GPU uploads per frame to avoid upload spikes.
         for _ in 0..3 {
-            let Some(result) = self.workers.try_receive() else { break };
+            let Some(result) = self.workers.try_receive() else {
+                break;
+            };
             let accepted = if result.position.y == 0 {
                 self.scheduler_low.complete(result.position)
             } else {
                 self.scheduler_high.complete(result.position)
             };
-            if !accepted { continue; }
+            if !accepted {
+                continue;
+            }
             let mut vertices = Vec::new();
             append_section_mesh(&mut vertices, &result.section, result.position);
-            if vertices.is_empty() { continue; }
-            let buffer = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-                label: Some("streamed chunk vertices"),
-                contents: bytemuck::cast_slice(&vertices),
-                usage: wgpu::BufferUsages::VERTEX,
-            });
-            self.meshes.insert(result.position, ChunkMesh {
-                buffer,
-                vertex_count: vertices.len() as u32,
-            });
+            if vertices.is_empty() {
+                continue;
+            }
+            let buffer = self
+                .device
+                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    label: Some("streamed chunk vertices"),
+                    contents: bytemuck::cast_slice(&vertices),
+                    usage: wgpu::BufferUsages::VERTEX,
+                });
+            self.meshes.insert(
+                result.position,
+                ChunkMesh {
+                    buffer,
+                    vertex_count: vertices.len() as u32,
+                },
+            );
         }
 
         // Limit outstanding work to a few requests each frame.
         for _ in 0..2 {
-            let next = self.scheduler_low.next_request()
+            let next = self
+                .scheduler_low
+                .next_request()
                 .or_else(|| self.scheduler_high.next_request());
-            let Some(pos) = next else { break };
+            let Some(pos) = next else {
+                break;
+            };
             if !self.workers.try_submit(pos) {
                 // Restore the request on the next view refresh if the queue is full.
                 if pos.y == 0 {
