@@ -33,8 +33,8 @@ impl ChunkScheduler {
         self.center = center;
         self.radius = radius.max(0);
         self.states.retain(|pos, _| {
-            (pos.x - center.x).abs() <= self.radius
-                && (pos.z - center.z).abs() <= self.radius
+            (i128::from(pos.x) - i128::from(center.x)).abs() <= i128::from(self.radius)
+                && (i128::from(pos.z) - i128::from(center.z)).abs() <= i128::from(self.radius)
                 && pos.y == center.y
         });
         let mut candidates = Vec::new();
@@ -76,6 +76,15 @@ impl ChunkScheduler {
             .min_by_key(|p| (self.distance_squared(*p), p.x, p.z))?;
         self.states.insert(pos, ChunkState::Generating);
         Some(pos)
+    }
+
+    /// Requeue a failed or rejected submission so the next frame can retry it.
+    pub fn retry(&mut self, pos: ChunkPos) -> bool {
+        if self.states.get(&pos) != Some(&ChunkState::Generating) {
+            return false;
+        }
+        self.states.insert(pos, ChunkState::Requested);
+        true
     }
 
     pub fn complete(&mut self, pos: ChunkPos) -> bool {
@@ -136,6 +145,25 @@ mod tests {
         assert!(!scheduler.complete(old));
         assert_eq!(scheduler.next_request(), Some(pos(100, 100)));
         assert!(scheduler.len() <= 9);
+    }
+
+    #[test]
+    fn failed_submission_can_be_retried() {
+        let mut scheduler = ChunkScheduler::new(1);
+        scheduler.update_view(pos(0, 0), 0);
+        let requested = scheduler.next_request().unwrap();
+        assert!(scheduler.retry(requested));
+        assert_eq!(scheduler.state(requested), Some(ChunkState::Requested));
+        assert_eq!(scheduler.next_request(), Some(requested));
+        assert!(!scheduler.retry(pos(4, 4)));
+    }
+
+    #[test]
+    fn extreme_coordinates_do_not_overflow() {
+        let mut scheduler = ChunkScheduler::new(2);
+        scheduler.update_view(pos(i64::MIN, i64::MIN), 1);
+        scheduler.update_view(pos(i64::MAX, i64::MAX), 1);
+        assert!(scheduler.len() <= 2);
     }
 
     #[test]
