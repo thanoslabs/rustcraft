@@ -164,8 +164,16 @@ impl Gpu {
         });
         let depth = depth_texture(&device, config.width, config.height);
         Ok(Self {
-            surface, device, queue, config, pipeline, camera_buffer, camera_bind_group,
-            vertex_buffer, vertex_count, depth,
+            surface,
+            device,
+            queue,
+            config,
+            pipeline,
+            camera_buffer,
+            camera_bind_group,
+            vertex_buffer,
+            vertex_count,
+            depth,
         })
     }
 
@@ -190,13 +198,18 @@ impl Gpu {
             512.0,
         );
         let matrix = (projection * view).to_cols_array();
-        self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&matrix));
+        self.queue
+            .write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&matrix));
 
         let frame = self.surface.get_current_texture()?;
-        let view = frame.texture.create_view(&wgpu::TextureViewDescriptor::default());
-        let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-            label: Some("frame"),
-        });
+        let view = frame
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+        let mut encoder = self
+            .device
+            .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                label: Some("frame"),
+            });
         {
             let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: Some("voxel pass"),
@@ -205,7 +218,10 @@ impl Gpu {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.14, g: 0.20, b: 0.29, a: 1.0,
+                            r: 0.14,
+                            g: 0.20,
+                            b: 0.29,
+                            a: 1.0,
                         }),
                         store: wgpu::StoreOp::Store,
                     },
