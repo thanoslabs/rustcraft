@@ -41,7 +41,11 @@ impl ChunkScheduler {
         for z in -self.radius..=self.radius {
             for x in -self.radius..=self.radius {
                 if let (Some(cx), Some(cz)) = (center.x.checked_add(x), center.z.checked_add(z)) {
-                    let pos = ChunkPos { x: cx, y: center.y, z: cz };
+                    let pos = ChunkPos {
+                        x: cx,
+                        y: center.y,
+                        z: cz,
+                    };
                     if !self.states.contains_key(&pos) {
                         candidates.push(pos);
                     }
@@ -64,7 +68,9 @@ impl ChunkScheduler {
     }
 
     pub fn next_request(&mut self) -> Option<ChunkPos> {
-        let pos = self.states.iter()
+        let pos = self
+            .states
+            .iter()
             .filter(|(_, state)| **state == ChunkState::Requested)
             .map(|(pos, _)| *pos)
             .min_by_key(|p| (self.distance_squared(*p), p.x, p.z))?;
@@ -91,7 +97,8 @@ impl ChunkScheduler {
     }
 
     pub fn loaded_positions(&self) -> HashSet<ChunkPos> {
-        self.states.iter()
+        self.states
+            .iter()
             .filter(|(_, state)| **state == ChunkState::Ready)
             .map(|(pos, _)| *pos)
             .collect()
