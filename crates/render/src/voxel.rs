@@ -2,7 +2,7 @@
 use rustcraft_core::ChunkPos;
 use rustcraft_world::{
     ChunkSection,
-    meshing::{Face, collect_visible_faces},
+    meshing::{Face, collect_visible_faces, collect_visible_faces_with_neighbors},
 };
 
 #[repr(C)]
@@ -26,12 +26,26 @@ impl Vertex {
 }
 
 pub fn append_section_mesh(vertices: &mut Vec<Vertex>, section: &ChunkSection, chunk: ChunkPos) {
+    append_section_mesh_with_neighbors(vertices, section, chunk, [None; 6]);
+}
+
+/// Build a section mesh with optional neighbors in left/right/bottom/top/back/front order.
+pub fn append_section_mesh_with_neighbors(
+    vertices: &mut Vec<Vertex>,
+    section: &ChunkSection,
+    chunk: ChunkPos,
+    neighbors: [Option<&ChunkSection>; 6],
+) {
     let origin = [
         chunk.x as f32 * 16.0,
         chunk.y as f32 * 16.0,
         chunk.z as f32 * 16.0,
     ];
-    for visible in collect_visible_faces(section) {
+    for visible in if neighbors.iter().all(Option::is_none) {
+        collect_visible_faces(section)
+    } else {
+        collect_visible_faces_with_neighbors(section, neighbors)
+    } {
         let p = [
             origin[0] + f32::from(visible.position.x),
             origin[1] + f32::from(visible.position.y),
@@ -90,6 +104,22 @@ mod tests {
     use super::*;
     use rustcraft_core::LocalPos;
     use rustcraft_world::BlockState;
+
+    #[test]
+    fn seam_faces_are_removed_from_render_mesh() {
+        let mut left = ChunkSection::new();
+        let mut right = ChunkSection::new();
+        left.set(LocalPos::new(15, 3, 4).unwrap(), BlockState(1));
+        right.set(LocalPos::new(0, 3, 4).unwrap(), BlockState(1));
+        let mut vertices = Vec::new();
+        append_section_mesh_with_neighbors(
+            &mut vertices,
+            &left,
+            ChunkPos { x: 0, y: 0, z: 0 },
+            [None, Some(&right), None, None, None, None],
+        );
+        assert_eq!(vertices.len(), 30);
+    }
 
     #[test]
     fn single_block_produces_six_quads() {
