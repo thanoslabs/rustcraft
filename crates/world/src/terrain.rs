@@ -33,9 +33,7 @@ fn terrain_height(seed: u64, x: i64, z: i64) -> i64 {
     let b = cell_height(seed, cx + 1, cz);
     let c = cell_height(seed, cx, cz + 1);
     let d = cell_height(seed, cx + 1, cz + 1);
-    ((a * (1.0 - tx) + b * tx) * (1.0 - tz)
-        + (c * (1.0 - tx) + d * tx) * tz)
-        .round() as i64
+    ((a * (1.0 - tx) + b * tx) * (1.0 - tz) + (c * (1.0 - tx) + d * tx) * tz).round() as i64
 }
 
 pub fn generate_section(seed: u64, chunk: ChunkPos) -> ChunkSection {
