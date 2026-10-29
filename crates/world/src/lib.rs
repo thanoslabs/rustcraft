@@ -68,3 +68,5 @@ mod tests {
 pub mod terrain;
 
 pub mod meshing;
+
+pub mod streaming;
