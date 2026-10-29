@@ -4,7 +4,7 @@ use rustcraft_core::ChunkPos;
 use std::{
     sync::{
         Arc, Mutex,
-        mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError},
+        mpsc::{self, Receiver, SyncSender, TrySendError},
     },
     thread::{self, JoinHandle},
 };
@@ -61,10 +61,7 @@ impl ChunkWorkers {
     }
 
     pub fn try_receive(&self) -> Option<GeneratedChunk> {
-        match self.receiver.try_recv() {
-            Ok(chunk) => Some(chunk),
-            Err(TryRecvError::Empty | TryRecvError::Disconnected) => None,
-        }
+        self.receiver.try_recv().ok()
     }
 }
 
