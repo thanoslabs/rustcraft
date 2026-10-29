@@ -2,7 +2,10 @@
 use crate::{ChunkSection, terrain::generate_section};
 use rustcraft_core::ChunkPos;
 use std::{
-    sync::{Arc, Mutex, mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError}},
+    sync::{
+        Arc, Mutex,
+        mpsc::{self, Receiver, SyncSender, TryRecvError, TrySendError},
+    },
     thread::{self, JoinHandle},
 };
 
@@ -40,17 +43,21 @@ impl ChunkWorkers {
                 }
             }));
         }
-        Self { sender: Some(sender), receiver, threads }
+        Self {
+            sender: Some(sender),
+            receiver,
+            threads,
+        }
     }
 
     /// Returns false when the bounded work queue is full or disconnected.
     pub fn try_submit(&self, position: ChunkPos) -> bool {
-        self.sender.as_ref().is_some_and(|sender| {
-            match sender.try_send(position) {
+        self.sender
+            .as_ref()
+            .is_some_and(|sender| match sender.try_send(position) {
                 Ok(()) => true,
                 Err(TrySendError::Full(_) | TrySendError::Disconnected(_)) => false,
-            }
-        })
+            })
     }
 
     pub fn try_receive(&self) -> Option<GeneratedChunk> {
