@@ -88,12 +88,30 @@ impl Gpu {
         let mut vertices = Vec::new();
         for (&chunk, section) in &sections {
             let neighbors = [
-                ChunkPos { x: chunk.x - 1, ..chunk },
-                ChunkPos { x: chunk.x + 1, ..chunk },
-                ChunkPos { y: chunk.y - 1, ..chunk },
-                ChunkPos { y: chunk.y + 1, ..chunk },
-                ChunkPos { z: chunk.z - 1, ..chunk },
-                ChunkPos { z: chunk.z + 1, ..chunk },
+                ChunkPos {
+                    x: chunk.x - 1,
+                    ..chunk
+                },
+                ChunkPos {
+                    x: chunk.x + 1,
+                    ..chunk
+                },
+                ChunkPos {
+                    y: chunk.y - 1,
+                    ..chunk
+                },
+                ChunkPos {
+                    y: chunk.y + 1,
+                    ..chunk
+                },
+                ChunkPos {
+                    z: chunk.z - 1,
+                    ..chunk
+                },
+                ChunkPos {
+                    z: chunk.z + 1,
+                    ..chunk
+                },
             ];
             append_section_mesh_with_neighbors(
                 &mut vertices,
