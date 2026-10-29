@@ -1,6 +1,7 @@
-pub mod chunk_workers;
-pub mod chunk_lifecycle;
 //! Voxel blocks, chunk sections, and world storage.
+
+pub mod chunk_lifecycle;
+pub mod chunk_workers;
 
 use rustcraft_core::{CHUNK_VOLUME, LocalPos};
 
