@@ -72,12 +72,7 @@ impl ApplicationHandler for App {
         self.last_frame = Instant::now();
     }
 
-    fn device_event(
-        &mut self,
-        _: &ActiveEventLoop,
-        _: winit::event::DeviceId,
-        event: DeviceEvent,
-    ) {
+    fn device_event(&mut self, _: &ActiveEventLoop, _: winit::event::DeviceId, event: DeviceEvent) {
         if let DeviceEvent::MouseMotion { delta } = event {
             if self.mouse_captured {
                 self.camera.look(delta.0 as f32, delta.1 as f32);
