@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = ["apps/client", "crates/core", "crates/world", "crates/render"]
+
+[workspace.package]
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/thanoslabs/rustcraft"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
