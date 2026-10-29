@@ -15,12 +15,25 @@ fn mix(mut x: u64) -> u64 {
     x ^ (x >> 31)
 }
 
+fn cell_height(seed: u64, x: i64, z: i64) -> f64 {
+    let h = mix(seed ^ mix(x as u64) ^ mix((z as u64).rotate_left(32)));
+    8.0 + (h % 12) as f64
+}
+
 fn terrain_height(seed: u64, x: i64, z: i64) -> i64 {
-    // Coarse cells make a stable prototype; later replace with smooth noise.
-    let cell_x = x.div_euclid(8);
-    let cell_z = z.div_euclid(8);
-    let h = mix(seed ^ mix(cell_x as u64) ^ mix((cell_z as u64).rotate_left(32)));
-    8 + (h % 12) as i64
+    // Smoothly interpolate coarse height samples so adjacent columns form
+    // recognizable one-block steps instead of abrupt eight-block cliffs.
+    let cx = x.div_euclid(8);
+    let cz = z.div_euclid(8);
+    let tx = x.rem_euclid(8) as f64 / 8.0;
+    let tz = z.rem_euclid(8) as f64 / 8.0;
+    let smooth = |t: f64| t * t * (3.0 - 2.0 * t);
+    let (tx, tz) = (smooth(tx), smooth(tz));
+    let a = cell_height(seed, cx, cz);
+    let b = cell_height(seed, cx + 1, cz);
+    let c = cell_height(seed, cx, cz + 1);
+    let d = cell_height(seed, cx + 1, cz + 1);
+    ((a * (1.0 - tx) + b * tx) * (1.0 - tz) + (c * (1.0 - tx) + d * tx) * tz).round() as i64
 }
 
 pub fn generate_section(seed: u64, chunk: ChunkPos) -> ChunkSection {
