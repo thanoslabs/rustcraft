@@ -54,3 +54,5 @@ mod tests {
         assert!(seen.into_iter().all(|value| value));
     }
 }
+
+pub mod camera;
