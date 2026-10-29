@@ -1,3 +1,4 @@
+pub mod chunk_workers;
 pub mod chunk_lifecycle;
 //! Voxel blocks, chunk sections, and world storage.
 
