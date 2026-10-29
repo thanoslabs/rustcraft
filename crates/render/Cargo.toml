@@ -8,6 +8,8 @@ license.workspace = true
 rustcraft-core = { path = "../core" }
 rustcraft-world = { path = "../world" }
 wgpu = "26"
+glam = "0.30"
+bytemuck = { version = "1", features = ["derive"] }
 winit = "0.30"
 
 [lints]

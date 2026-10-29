@@ -16,6 +16,8 @@ struct App {
     keys: HashSet<KeyCode>,
     mouse_captured: bool,
     last_frame: Instant,
+    fps_since: Instant,
+    frames: u32,
 }
 
 impl Default for App {
@@ -27,6 +29,8 @@ impl Default for App {
             keys: HashSet::new(),
             mouse_captured: false,
             last_frame: Instant::now(),
+            fps_since: Instant::now(),
+            frames: 0,
         }
     }
 }
@@ -70,6 +74,7 @@ impl ApplicationHandler for App {
         self.gpu = Some(gpu);
         self.window = Some(window);
         self.last_frame = Instant::now();
+        self.fps_since = Instant::now();
     }
 
     fn device_event(&mut self, _: &ActiveEventLoop, _: winit::event::DeviceId, event: DeviceEvent) {
@@ -109,8 +114,20 @@ impl ApplicationHandler for App {
             }
             WindowEvent::RedrawRequested => {
                 self.update_camera();
+                self.frames += 1;
+                let elapsed = self.fps_since.elapsed().as_secs_f32();
+                if elapsed >= 1.0 {
+                    if let Some(window) = &self.window {
+                        window.set_title(&format!(
+                            "Rustcraft | {:.0} FPS",
+                            self.frames as f32 / elapsed
+                        ));
+                    }
+                    self.frames = 0;
+                    self.fps_since = Instant::now();
+                }
                 if let Some(gpu) = &self.gpu {
-                    match gpu.render() {
+                    match gpu.render(&self.camera) {
                         Ok(()) => {}
                         Err(wgpu_error) => eprintln!("render error: {wgpu_error}"),
                     }
