@@ -1,4 +1,6 @@
-use criterion::{Criterion, black_box, criterion_group, criterion_main};
+use std::hint::black_box;
+
+use criterion::{Criterion, criterion_group, criterion_main};
 
 fn chunk_access(c: &mut Criterion) {
     let blocks = [0_u16; 16 * 16 * 16];
