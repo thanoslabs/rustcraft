@@ -1,11 +1,11 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use wgpu::util::DeviceExt;
 use winit::window::Window;
 
 use rustcraft_core::{ChunkPos, camera::Camera};
-use rustcraft_world::terrain::generate_section;
+use rustcraft_world::{ChunkSection, terrain::generate_section};
 
-use crate::voxel::{Vertex, append_section_mesh};
+use crate::voxel::{Vertex, append_section_mesh_with_neighbors};
 
 pub struct Gpu {
     pub surface: wgpu::Surface<'static>,
@@ -75,16 +75,32 @@ impl Gpu {
         };
         surface.configure(&device, &config);
 
-        let mut vertices = Vec::new();
-        // Fixed prototype world. Streaming and neighbor-aware meshing follow in milestone 2.
+        // Generate the prototype sections first so shared boundaries can be culled.
+        let mut sections: HashMap<ChunkPos, ChunkSection> = HashMap::new();
         for z in -2..=2 {
             for x in -2..=2 {
                 for y in 0..=1 {
                     let chunk = ChunkPos { x, y, z };
-                    let section = generate_section(42, chunk);
-                    append_section_mesh(&mut vertices, &section, chunk);
+                    sections.insert(chunk, generate_section(42, chunk));
                 }
             }
+        }
+        let mut vertices = Vec::new();
+        for (&chunk, section) in &sections {
+            let neighbors = [
+                ChunkPos { x: chunk.x - 1, ..chunk },
+                ChunkPos { x: chunk.x + 1, ..chunk },
+                ChunkPos { y: chunk.y - 1, ..chunk },
+                ChunkPos { y: chunk.y + 1, ..chunk },
+                ChunkPos { z: chunk.z - 1, ..chunk },
+                ChunkPos { z: chunk.z + 1, ..chunk },
+            ];
+            append_section_mesh_with_neighbors(
+                &mut vertices,
+                section,
+                chunk,
+                neighbors.map(|pos| sections.get(&pos)),
+            );
         }
         let vertex_count = vertices.len() as u32;
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
