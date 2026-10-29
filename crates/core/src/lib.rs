@@ -4,10 +4,18 @@ pub const CHUNK_EDGE: usize = 16;
 pub const CHUNK_VOLUME: usize = CHUNK_EDGE * CHUNK_EDGE * CHUNK_EDGE;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ChunkPos { pub x: i64, pub y: i64, pub z: i64 }
+pub struct ChunkPos {
+    pub x: i64,
+    pub y: i64,
+    pub z: i64,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct LocalPos { pub x: u8, pub y: u8, pub z: u8 }
+pub struct LocalPos {
+    pub x: u8,
+    pub y: u8,
+    pub z: u8,
+}
 
 impl LocalPos {
     pub fn new(x: u8, y: u8, z: u8) -> Option<Self> {
@@ -34,10 +42,15 @@ mod tests {
     #[test]
     fn local_indices_are_unique() {
         let mut seen = [false; CHUNK_VOLUME];
-        for y in 0..16 { for z in 0..16 { for x in 0..16 {
-            let index = LocalPos::new(x, y, z).unwrap().index();
-            assert!(!seen[index]); seen[index] = true;
-        }}}
+        for y in 0..16 {
+            for z in 0..16 {
+                for x in 0..16 {
+                    let index = LocalPos::new(x, y, z).unwrap().index();
+                    assert!(!seen[index]);
+                    seen[index] = true;
+                }
+            }
+        }
         assert!(seen.into_iter().all(|value| value));
     }
 }
