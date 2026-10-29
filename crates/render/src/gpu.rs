@@ -1,11 +1,16 @@
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use wgpu::util::DeviceExt;
 use winit::window::Window;
 
 use rustcraft_core::{ChunkPos, camera::Camera};
-use rustcraft_world::terrain::generate_section;
+use rustcraft_world::{chunk_lifecycle::ChunkScheduler, chunk_workers::ChunkWorkers};
 
 use crate::voxel::{Vertex, append_section_mesh};
+
+struct ChunkMesh {
+    buffer: wgpu::Buffer,
+    vertex_count: u32,
+}
 
 pub struct Gpu {
     pub surface: wgpu::Surface<'static>,
@@ -15,8 +20,10 @@ pub struct Gpu {
     pipeline: wgpu::RenderPipeline,
     camera_buffer: wgpu::Buffer,
     camera_bind_group: wgpu::BindGroup,
-    vertex_buffer: wgpu::Buffer,
-    vertex_count: u32,
+    meshes: HashMap<ChunkPos, ChunkMesh>,
+    scheduler_low: ChunkScheduler,
+    scheduler_high: ChunkScheduler,
+    workers: ChunkWorkers,
     depth: wgpu::TextureView,
 }
 
@@ -75,23 +82,6 @@ impl Gpu {
         };
         surface.configure(&device, &config);
 
-        let mut vertices = Vec::new();
-        // Fixed prototype world. Streaming and neighbor-aware meshing follow in milestone 2.
-        for z in -2..=2 {
-            for x in -2..=2 {
-                for y in 0..=1 {
-                    let chunk = ChunkPos { x, y, z };
-                    let section = generate_section(42, chunk);
-                    append_section_mesh(&mut vertices, &section, chunk);
-                }
-            }
-        }
-        let vertex_count = vertices.len() as u32;
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("voxel vertices"),
-            contents: bytemuck::cast_slice(&vertices),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
         let camera_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("camera uniform"),
             size: 64,
@@ -171,10 +161,65 @@ impl Gpu {
             pipeline,
             camera_buffer,
             camera_bind_group,
-            vertex_buffer,
-            vertex_count,
+            meshes: HashMap::new(),
+            scheduler_low: ChunkScheduler::new(50),
+            scheduler_high: ChunkScheduler::new(50),
+            workers: ChunkWorkers::new(42, 2, 32),
             depth,
         })
+    }
+
+    /// Advance world streaming without blocking the frame on terrain generation.
+    pub fn update_world(&mut self, camera: &Camera) {
+        let cx = (f64::from(camera.position[0]) / 16.0).floor() as i64;
+        let cz = (f64::from(camera.position[2]) / 16.0).floor() as i64;
+        self.scheduler_low.update_view(ChunkPos { x: cx, y: 0, z: cz }, 2);
+        self.scheduler_high.update_view(ChunkPos { x: cx, y: 1, z: cz }, 2);
+
+        // Retain only meshes within the active view.
+        self.meshes.retain(|pos, _| {
+            self.scheduler_low.state(*pos).is_some()
+                || self.scheduler_high.state(*pos).is_some()
+        });
+
+        // Bound GPU uploads per frame to avoid upload spikes.
+        for _ in 0..3 {
+            let Some(result) = self.workers.try_receive() else { break };
+            let accepted = if result.position.y == 0 {
+                self.scheduler_low.complete(result.position)
+            } else {
+                self.scheduler_high.complete(result.position)
+            };
+            if !accepted { continue; }
+            let mut vertices = Vec::new();
+            append_section_mesh(&mut vertices, &result.section, result.position);
+            if vertices.is_empty() { continue; }
+            let buffer = self.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("streamed chunk vertices"),
+                contents: bytemuck::cast_slice(&vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            self.meshes.insert(result.position, ChunkMesh {
+                buffer,
+                vertex_count: vertices.len() as u32,
+            });
+        }
+
+        // Limit outstanding work to a few requests each frame.
+        for _ in 0..2 {
+            let next = self.scheduler_low.next_request()
+                .or_else(|| self.scheduler_high.next_request());
+            let Some(pos) = next else { break };
+            if !self.workers.try_submit(pos) {
+                // Restore the request on the next view refresh if the queue is full.
+                if pos.y == 0 {
+                    self.scheduler_low.defer(pos);
+                } else {
+                    self.scheduler_high.defer(pos);
+                }
+                break;
+            }
+        }
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
@@ -240,8 +285,10 @@ impl Gpu {
             });
             pass.set_pipeline(&self.pipeline);
             pass.set_bind_group(0, &self.camera_bind_group, &[]);
-            pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-            pass.draw(0..self.vertex_count, 0..1);
+            for mesh in self.meshes.values() {
+                pass.set_vertex_buffer(0, mesh.buffer.slice(..));
+                pass.draw(0..mesh.vertex_count, 0..1);
+            }
         }
         self.queue.submit(Some(encoder.finish()));
         frame.present();
