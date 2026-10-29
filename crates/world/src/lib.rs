@@ -16,22 +16,37 @@ pub struct ChunkSection {
 }
 
 impl Default for ChunkSection {
-    fn default() -> Self { Self::new() }
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ChunkSection {
     pub fn new() -> Self {
-        Self { blocks: Box::new([BlockState::AIR; CHUNK_VOLUME]), non_air_count: 0 }
+        Self {
+            blocks: Box::new([BlockState::AIR; CHUNK_VOLUME]),
+            non_air_count: 0,
+        }
     }
-    pub fn get(&self, pos: LocalPos) -> BlockState { self.blocks[pos.index()] }
+    pub fn get(&self, pos: LocalPos) -> BlockState {
+        self.blocks[pos.index()]
+    }
     pub fn set(&mut self, pos: LocalPos, state: BlockState) -> BlockState {
         let previous = std::mem::replace(&mut self.blocks[pos.index()], state);
-        if previous == BlockState::AIR && state != BlockState::AIR { self.non_air_count += 1; }
-        if previous != BlockState::AIR && state == BlockState::AIR { self.non_air_count -= 1; }
+        if previous == BlockState::AIR && state != BlockState::AIR {
+            self.non_air_count += 1;
+        }
+        if previous != BlockState::AIR && state == BlockState::AIR {
+            self.non_air_count -= 1;
+        }
         previous
     }
-    pub fn non_air_count(&self) -> u16 { self.non_air_count }
-    pub fn is_empty(&self) -> bool { self.non_air_count == 0 }
+    pub fn non_air_count(&self) -> u16 {
+        self.non_air_count
+    }
+    pub fn is_empty(&self) -> bool {
+        self.non_air_count == 0
+    }
 }
 
 #[cfg(test)]
