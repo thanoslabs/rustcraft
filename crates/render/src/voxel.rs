@@ -68,7 +68,13 @@ pub fn append_section_mesh(vertices: &mut Vec<Vertex>, section: &ChunkSection, c
             2 => [0.48, 0.32, 0.19],
             _ => [0.48, 0.50, 0.53],
         };
-        let color = base.map(|c| c * shade);
+        // Subtle deterministic per-block tint makes stacked cube boundaries
+        // visible without introducing texture assets or nondeterminism.
+        let hash = (p[0] as i64).wrapping_mul(73_856_093)
+            ^ (p[1] as i64).wrapping_mul(19_349_663)
+            ^ (p[2] as i64).wrapping_mul(83_492_791);
+        let variation = 0.91 + (hash.rem_euclid(11) as f32) * 0.012;
+        let color = base.map(|c| c * shade * variation);
         for i in [0, 1, 2, 0, 2, 3] {
             let offset = corners[i];
             vertices.push(Vertex {
