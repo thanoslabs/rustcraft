@@ -64,3 +64,5 @@ mod tests {
         assert!(section.is_empty());
     }
 }
+
+pub mod terrain;
