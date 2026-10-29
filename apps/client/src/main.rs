@@ -118,7 +118,10 @@ impl ApplicationHandler for App {
                 let elapsed = self.fps_since.elapsed().as_secs_f32();
                 if elapsed >= 1.0 {
                     if let Some(window) = &self.window {
-                        window.set_title(&format!("Rustcraft | {:.0} FPS", self.frames as f32 / elapsed));
+                        window.set_title(&format!(
+                            "Rustcraft | {:.0} FPS",
+                            self.frames as f32 / elapsed
+                        ));
                     }
                     self.frames = 0;
                     self.fps_since = Instant::now();
