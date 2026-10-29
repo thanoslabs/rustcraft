@@ -40,7 +40,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
       - name: Build optimized client
-        run: cargo build --release --locked --package rustcraft-client --target ${{ matrix.target }}
+        run: cargo build --release --package rustcraft-client --target ${{ matrix.target }}
       - name: Package executable (Unix)
         if: runner.os != 'Windows'
         shell: bash
