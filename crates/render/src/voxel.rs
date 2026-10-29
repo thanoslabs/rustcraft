@@ -38,12 +38,30 @@ pub fn append_section_mesh(vertices: &mut Vec<Vertex>, section: &ChunkSection, c
             origin[2] + f32::from(visible.position.z),
         ];
         let (corners, shade): ([[f32; 3]; 4], f32) = match visible.face {
-            Face::Left => ([[0.,0.,1.],[0.,0.,0.],[0.,1.,0.],[0.,1.,1.]], 0.75),
-            Face::Right => ([[1.,0.,0.],[1.,0.,1.],[1.,1.,1.],[1.,1.,0.]], 0.75),
-            Face::Bottom => ([[0.,0.,0.],[1.,0.,0.],[1.,0.,1.],[0.,0.,1.]], 0.55),
-            Face::Top => ([[0.,1.,1.],[1.,1.,1.],[1.,1.,0.],[0.,1.,0.]], 1.0),
-            Face::Back => ([[0.,0.,0.],[1.,0.,0.],[1.,1.,0.],[0.,1.,0.]], 0.85),
-            Face::Front => ([[1.,0.,1.],[0.,0.,1.],[0.,1.,1.],[1.,1.,1.]], 0.85),
+            Face::Left => (
+                [[0., 0., 1.], [0., 0., 0.], [0., 1., 0.], [0., 1., 1.]],
+                0.75,
+            ),
+            Face::Right => (
+                [[1., 0., 0.], [1., 0., 1.], [1., 1., 1.], [1., 1., 0.]],
+                0.75,
+            ),
+            Face::Bottom => (
+                [[0., 0., 0.], [1., 0., 0.], [1., 0., 1.], [0., 0., 1.]],
+                0.55,
+            ),
+            Face::Top => (
+                [[0., 1., 1.], [1., 1., 1.], [1., 1., 0.], [0., 1., 0.]],
+                1.0,
+            ),
+            Face::Back => (
+                [[0., 0., 0.], [1., 0., 0.], [1., 1., 0.], [0., 1., 0.]],
+                0.85,
+            ),
+            Face::Front => (
+                [[1., 0., 1.], [0., 0., 1.], [0., 1., 1.], [1., 1., 1.]],
+                0.85,
+            ),
         };
         let base: [f32; 3] = match visible.block.0 {
             1 => [0.32, 0.65, 0.23],
@@ -64,8 +82,8 @@ pub fn append_section_mesh(vertices: &mut Vec<Vertex>, section: &ChunkSection, c
 #[cfg(test)]
 mod tests {
     use super::*;
-    use rustcraft_world::BlockState;
     use rustcraft_core::LocalPos;
+    use rustcraft_world::BlockState;
 
     #[test]
     fn single_block_produces_six_quads() {
