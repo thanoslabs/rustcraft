@@ -126,7 +126,7 @@ impl Gpu {
         let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("voxel pipeline layout"),
             bind_group_layouts: &[&camera_layout],
-            immediate_size: 0,
+            push_constant_ranges: &[],
         });
         let pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
             label: Some("voxel pipeline"),
