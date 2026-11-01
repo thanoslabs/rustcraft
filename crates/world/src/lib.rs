@@ -73,3 +73,5 @@ pub mod terrain;
 pub mod meshing;
 
 pub mod streaming;
+
+pub mod blocks;
