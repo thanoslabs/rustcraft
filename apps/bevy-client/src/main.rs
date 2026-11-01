@@ -20,6 +20,7 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, setup)
+        .add_systems(Update, move_camera)
         .run();
 }
 
@@ -161,4 +162,24 @@ fn section_mesh(section: &ChunkSection, neighbors: [Option<&ChunkSection>; 6]) -
     mesh.insert_attribute(Mesh::ATTRIBUTE_COLOR, colors);
     mesh.insert_indices(Indices::U32(indices));
     Some(mesh)
+}
+
+/// Spectator movement until the player physics controller is integrated.
+fn move_camera(
+    keys: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+    mut cameras: Query<&mut Transform, With<Camera3d>>,
+) {
+    for mut transform in &mut cameras {
+        let mut movement = Vec3::ZERO;
+        if keys.pressed(KeyCode::KeyW) { movement.z -= 1.0; }
+        if keys.pressed(KeyCode::KeyS) { movement.z += 1.0; }
+        if keys.pressed(KeyCode::KeyA) { movement.x -= 1.0; }
+        if keys.pressed(KeyCode::KeyD) { movement.x += 1.0; }
+        if keys.pressed(KeyCode::Space) { movement.y += 1.0; }
+        if keys.pressed(KeyCode::ShiftLeft) { movement.y -= 1.0; }
+        if movement != Vec3::ZERO {
+            transform.translation += movement.normalize() * 12.0 * time.delta_secs();
+        }
+    }
 }
