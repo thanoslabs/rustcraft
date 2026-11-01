@@ -1,0 +1,13 @@
+[package]
+name = "rustcraft-bevy-client"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+bevy = "0.20.1"
+rustcraft-core = { path = "../../crates/core" }
+rustcraft-world = { path = "../../crates/world" }
+
+[lints]
+workspace = true
