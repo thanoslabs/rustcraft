@@ -18,8 +18,16 @@ impl BlockPosition {
         let (cy, ly) = split_coordinate(self.y);
         let (cz, lz) = split_coordinate(self.z);
         (
-            ChunkPos { x: cx, y: cy, z: cz },
-            LocalPos { x: lx, y: ly, z: lz },
+            ChunkPos {
+                x: cx,
+                y: cy,
+                z: cz,
+            },
+            LocalPos {
+                x: lx,
+                y: ly,
+                z: lz,
+            },
         )
     }
 }
@@ -91,6 +99,9 @@ mod tests {
         edits.set(BlockPosition { x: 0, y: 0, z: 0 }, BlockState(3));
         edits.set(BlockPosition { x: 16, y: 0, z: 0 }, BlockState(2));
         assert_eq!(edits.edited_chunk_count(), 2);
-        assert_eq!(edits.edits_for_chunk(ChunkPos { x: 0, y: 0, z: 0 }).count(), 1);
+        assert_eq!(
+            edits.edits_for_chunk(ChunkPos { x: 0, y: 0, z: 0 }).count(),
+            1
+        );
     }
 }
