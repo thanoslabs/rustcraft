@@ -1,7 +1,16 @@
 //! Bevy terrain renderer backed by Rustcraft's existing chunk generator and face mesher.
-use bevy::{asset::RenderAssetUsages, mesh::Indices, prelude::*, render::render_resource::PrimitiveTopology};
+use bevy::{
+    asset::RenderAssetUsages,
+    mesh::Indices,
+    prelude::*,
+    render::render_resource::PrimitiveTopology,
+};
 use rustcraft_core::ChunkPos;
-use rustcraft_world::{meshing::{Face, collect_visible_faces_with_neighbors}, terrain::generate_section, ChunkSection};
+use rustcraft_world::{
+    ChunkSection,
+    meshing::{Face, collect_visible_faces_with_neighbors},
+    terrain::generate_section,
+};
 use std::collections::HashMap;
 
 fn main() {
@@ -35,12 +44,30 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
     let material = materials.add(StandardMaterial { base_color: Color::WHITE, perceptual_roughness: 1.0, ..default() });
     for (&pos, section) in &sections {
         let neighbors = [
-            ChunkPos { x: pos.x - 1, ..pos },
-            ChunkPos { x: pos.x + 1, ..pos },
-            ChunkPos { y: pos.y - 1, ..pos },
-            ChunkPos { y: pos.y + 1, ..pos },
-            ChunkPos { z: pos.z - 1, ..pos },
-            ChunkPos { z: pos.z + 1, ..pos },
+            ChunkPos {
+                x: pos.x - 1,
+                ..pos
+            },
+            ChunkPos {
+                x: pos.x + 1,
+                ..pos
+            },
+            ChunkPos {
+                y: pos.y - 1,
+                ..pos
+            },
+            ChunkPos {
+                y: pos.y + 1,
+                ..pos
+            },
+            ChunkPos {
+                z: pos.z - 1,
+                ..pos
+            },
+            ChunkPos {
+                z: pos.z + 1,
+                ..pos
+            },
         ];
         if let Some(mesh) = section_mesh(section, neighbors.map(|p| sections.get(&p))) {
             commands.spawn((Mesh3d(meshes.add(mesh)), MeshMaterial3d(material.clone()), Transform::from_xyz(pos.x as f32 * 16.0, pos.y as f32 * 16.0, pos.z as f32 * 16.0)));
