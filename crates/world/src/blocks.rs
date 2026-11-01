@@ -49,7 +49,12 @@ pub fn properties(state: BlockState) -> Option<BlockProperties> {
         16 => ("chest", true, true, 2),
         _ => return None,
     };
-    Some(BlockProperties { name, solid, opaque, hardness })
+    Some(BlockProperties {
+        name,
+        solid,
+        opaque,
+        hardness,
+    })
 }
 
 #[cfg(test)]
