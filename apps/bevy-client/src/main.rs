@@ -172,12 +172,24 @@ fn move_camera(
 ) {
     for mut transform in &mut cameras {
         let mut movement = Vec3::ZERO;
-        if keys.pressed(KeyCode::KeyW) { movement.z -= 1.0; }
-        if keys.pressed(KeyCode::KeyS) { movement.z += 1.0; }
-        if keys.pressed(KeyCode::KeyA) { movement.x -= 1.0; }
-        if keys.pressed(KeyCode::KeyD) { movement.x += 1.0; }
-        if keys.pressed(KeyCode::Space) { movement.y += 1.0; }
-        if keys.pressed(KeyCode::ShiftLeft) { movement.y -= 1.0; }
+        if keys.pressed(KeyCode::KeyW) {
+            movement.z -= 1.0;
+        }
+        if keys.pressed(KeyCode::KeyS) {
+            movement.z += 1.0;
+        }
+        if keys.pressed(KeyCode::KeyA) {
+            movement.x -= 1.0;
+        }
+        if keys.pressed(KeyCode::KeyD) {
+            movement.x += 1.0;
+        }
+        if keys.pressed(KeyCode::Space) {
+            movement.y += 1.0;
+        }
+        if keys.pressed(KeyCode::ShiftLeft) {
+            movement.y -= 1.0;
+        }
         if movement != Vec3::ZERO {
             transform.translation += movement.normalize() * 12.0 * time.delta_secs();
         }
