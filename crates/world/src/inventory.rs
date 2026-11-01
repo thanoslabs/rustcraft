@@ -12,8 +12,7 @@ pub struct ItemStack {
 
 impl ItemStack {
     pub fn new(item: u16, count: u8) -> Option<Self> {
-        (item != 0 && (1..=DEFAULT_STACK_LIMIT).contains(&count))
-            .then_some(Self { item, count })
+        (item != 0 && (1..=DEFAULT_STACK_LIMIT).contains(&count)).then_some(Self { item, count })
     }
 }
 
@@ -24,9 +23,7 @@ pub struct Inventory<const N: usize> {
 
 impl<const N: usize> Default for Inventory<N> {
     fn default() -> Self {
-        Self {
-            slots: [None; N],
-        }
+        Self { slots: [None; N] }
     }
 }
 
@@ -54,8 +51,8 @@ impl<const N: usize> Inventory<N> {
         }
         for slot in &mut self.slots {
             if remaining == 0 {
-            break;
-        }
+                break;
+            }
             if slot.is_none() {
                 let added = remaining.min(u32::from(DEFAULT_STACK_LIMIT));
                 *slot = ItemStack::new(item, added as u8);
@@ -70,8 +67,8 @@ impl<const N: usize> Inventory<N> {
         let mut remaining = count;
         for slot in &mut self.slots {
             if remaining == 0 {
-            break;
-        }
+                break;
+            }
             if let Some(stack) = slot {
                 if stack.item == item {
                     let removed = remaining.min(u32::from(stack.count));
