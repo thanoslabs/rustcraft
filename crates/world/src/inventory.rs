@@ -40,13 +40,13 @@ impl<const N: usize> Inventory<N> {
         }
         let mut remaining = count;
         for slot in &mut self.slots {
-            if let Some(stack) = slot {
-                if stack.item == item {
+            if let Some(stack) = slot
+                && stack.item == item
+            {
                     let room = u32::from(DEFAULT_STACK_LIMIT - stack.count);
                     let added = remaining.min(room);
                     stack.count += added as u8;
                     remaining -= added;
-                }
             }
         }
         for slot in &mut self.slots {
@@ -69,15 +69,15 @@ impl<const N: usize> Inventory<N> {
             if remaining == 0 {
                 break;
             }
-            if let Some(stack) = slot {
-                if stack.item == item {
+            if let Some(stack) = slot
+                && stack.item == item
+            {
                     let removed = remaining.min(u32::from(stack.count));
                     stack.count -= removed as u8;
                     remaining -= removed;
                     if stack.count == 0 {
                         *slot = None;
                     }
-                }
             }
         }
         count - remaining
