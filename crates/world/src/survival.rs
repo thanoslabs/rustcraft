@@ -99,11 +99,21 @@ mod tests {
 
     #[test]
     fn starvation_respects_difficulty_floor() {
-        let mut easy = SurvivalStats { food: 0, ..Default::default() };
-        for _ in 0..30 { easy.periodic_tick(Difficulty::Easy); }
+        let mut easy = SurvivalStats {
+            food: 0,
+            ..Default::default()
+        };
+        for _ in 0..30 {
+            easy.periodic_tick(Difficulty::Easy);
+        }
         assert_eq!(easy.health, 10);
-        let mut hard = SurvivalStats { food: 0, ..Default::default() };
-        for _ in 0..30 { hard.periodic_tick(Difficulty::Hard); }
+        let mut hard = SurvivalStats {
+            food: 0,
+            ..Default::default()
+        };
+        for _ in 0..30 {
+            hard.periodic_tick(Difficulty::Hard);
+        }
         assert_eq!(hard.health, 0);
     }
 
