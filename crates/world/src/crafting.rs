@@ -11,10 +11,15 @@ pub struct Recipe {
 
 impl Recipe {
     pub fn matches(&self, grid: &[u16], grid_width: usize, grid_height: usize) -> bool {
-        if self.width == 0 || self.height == 0 || self.width > grid_width || self.height > grid_height {
+        if self.width == 0
+            || self.height == 0
+            || self.width > grid_width
+            || self.height > grid_height
+        {
             return false;
         }
-        if self.pattern.len() != self.width * self.height || grid.len() != grid_width * grid_height {
+        if self.pattern.len() != self.width * self.height || grid.len() != grid_width * grid_height
+        {
             return false;
         }
         for offset_y in 0..=grid_height - self.height {
@@ -22,8 +27,11 @@ impl Recipe {
                 let mut valid = true;
                 for y in 0..grid_height {
                     for x in 0..grid_width {
-                        let expected = if x >= offset_x && x < offset_x + self.width
-                            && y >= offset_y && y < offset_y + self.height {
+                        let expected = if x >= offset_x
+                            && x < offset_x + self.width
+                            && y >= offset_y
+                            && y < offset_y + self.height
+                        {
                             self.pattern[(y - offset_y) * self.width + x - offset_x]
                         } else {
                             0
@@ -33,7 +41,9 @@ impl Recipe {
                         }
                     }
                 }
-                if valid { return true; }
+                if valid {
+                    return true;
+                }
             }
         }
         false
@@ -69,7 +79,10 @@ pub const STARTER_RECIPES: &[Recipe] = &[
 ];
 
 pub fn find_recipe(grid: &[u16], width: usize, height: usize) -> Option<ItemStack> {
-    STARTER_RECIPES.iter().find(|recipe| recipe.matches(grid, width, height)).map(|recipe| recipe.output)
+    STARTER_RECIPES
+        .iter()
+        .find(|recipe| recipe.matches(grid, width, height))
+        .map(|recipe| recipe.output)
 }
 
 #[cfg(test)]
@@ -78,7 +91,10 @@ mod tests {
 
     #[test]
     fn matches_translated_recipe() {
-        assert_eq!(find_recipe(&[0, 0, 0, 0, 10, 0, 0, 0, 0], 3, 3), Some(ItemStack { item: 5, count: 4 }));
+        assert_eq!(
+            find_recipe(&[0, 0, 0, 0, 10, 0, 0, 0, 0], 3, 3),
+            Some(ItemStack { item: 5, count: 4 })
+        );
     }
 
     #[test]
@@ -88,7 +104,10 @@ mod tests {
 
     #[test]
     fn furnace_recipe_requires_center_gap() {
-        assert_eq!(find_recipe(&[4, 4, 4, 4, 0, 4, 4, 4, 4], 3, 3), Some(ItemStack { item: 15, count: 1 }));
+        assert_eq!(
+            find_recipe(&[4, 4, 4, 4, 0, 4, 4, 4, 4], 3, 3),
+            Some(ItemStack { item: 15, count: 1 })
+        );
         assert_eq!(find_recipe(&[4; 9], 3, 3), None);
     }
 }
