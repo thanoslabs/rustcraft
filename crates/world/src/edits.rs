@@ -33,7 +33,10 @@ impl WorldEdits {
     /// Store an override, including air for mined blocks.
     pub fn set(&mut self, position: BlockPosition, block: BlockState) -> Option<BlockState> {
         let (chunk, local) = position.split();
-        self.changes.entry(chunk).or_default().insert(local.index(), block)
+        self.changes
+            .entry(chunk)
+            .or_default()
+            .insert(local.index(), block)
     }
 
     pub fn get(&self, position: BlockPosition) -> Option<BlockState> {
@@ -41,8 +44,14 @@ impl WorldEdits {
         self.changes.get(&chunk)?.get(&local.index()).copied()
     }
 
-    pub fn edits_for_chunk(&self, chunk: ChunkPos) -> impl Iterator<Item = (usize, BlockState)> + '_ {
-        self.changes.get(&chunk).into_iter().flat_map(|edits| edits.iter().map(|(&index, &block)| (index, block)))
+    pub fn edits_for_chunk(
+        &self,
+        chunk: ChunkPos,
+    ) -> impl Iterator<Item = (usize, BlockState)> + '_ {
+        self.changes
+            .get(&chunk)
+            .into_iter()
+            .flat_map(|edits| edits.iter().map(|(&index, &block)| (index, block)))
     }
 
     pub fn edited_chunk_count(&self) -> usize {
@@ -56,7 +65,12 @@ mod tests {
 
     #[test]
     fn negative_coordinates_use_euclidean_chunks() {
-        let (chunk, local) = BlockPosition { x: -1, y: -17, z: 16 }.split();
+        let (chunk, local) = BlockPosition {
+            x: -1,
+            y: -17,
+            z: 16,
+        }
+        .split();
         assert_eq!(chunk, ChunkPos { x: -1, y: -2, z: 1 });
         assert_eq!(local, LocalPos { x: 15, y: 15, z: 0 });
     }
