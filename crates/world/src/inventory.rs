@@ -24,7 +24,9 @@ pub struct Inventory<const N: usize> {
 
 impl<const N: usize> Default for Inventory<N> {
     fn default() -> Self {
-        Self { slots: [None; N] }
+        Self {
+            slots: [None; N],
+        }
     }
 }
 
@@ -36,7 +38,9 @@ impl<const N: usize> Inventory<N> {
     /// Insert items, filling matching stacks before empty slots.
     /// Returns the count that could not be inserted.
     pub fn insert(&mut self, item: u16, count: u32) -> u32 {
-        if item == 0 { return count; }
+        if item == 0 {
+            return count;
+        }
         let mut remaining = count;
         for slot in &mut self.slots {
             if let Some(stack) = slot {
@@ -49,7 +53,9 @@ impl<const N: usize> Inventory<N> {
             }
         }
         for slot in &mut self.slots {
-            if remaining == 0 { break; }
+            if remaining == 0 {
+            break;
+        }
             if slot.is_none() {
                 let added = remaining.min(u32::from(DEFAULT_STACK_LIMIT));
                 *slot = ItemStack::new(item, added as u8);
@@ -63,13 +69,17 @@ impl<const N: usize> Inventory<N> {
     pub fn remove(&mut self, item: u16, count: u32) -> u32 {
         let mut remaining = count;
         for slot in &mut self.slots {
-            if remaining == 0 { break; }
+            if remaining == 0 {
+            break;
+        }
             if let Some(stack) = slot {
                 if stack.item == item {
                     let removed = remaining.min(u32::from(stack.count));
                     stack.count -= removed as u8;
                     remaining -= removed;
-                    if stack.count == 0 { *slot = None; }
+                    if stack.count == 0 {
+                        *slot = None;
+                    }
                 }
             }
         }
@@ -77,8 +87,12 @@ impl<const N: usize> Inventory<N> {
     }
 
     pub fn count(&self, item: u16) -> u32 {
-        self.slots.iter().flatten().filter(|s| s.item == item)
-            .map(|s| u32::from(s.count)).sum()
+        self.slots
+            .iter()
+            .flatten()
+            .filter(|s| s.item == item)
+            .map(|s| u32::from(s.count))
+            .sum()
     }
 }
 
