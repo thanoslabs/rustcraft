@@ -28,12 +28,24 @@ pub fn raycast(
     }
     let dir = direction.map(|v| v / length);
     let mut cell = origin.map(|v| v.floor() as i64);
-    let step = dir.map(|v| if v > 0.0 { 1_i64 } else if v < 0.0 { -1 } else { 0 });
+    let step = dir.map(|v| {
+        if v > 0.0 {
+            1_i64
+        } else if v < 0.0 {
+            -1
+        } else {
+            0
+        }
+    });
     let mut next = [f64::INFINITY; 3];
     let mut delta = [f64::INFINITY; 3];
     for axis in 0..3 {
         if step[axis] != 0 {
-            let boundary = if step[axis] > 0 { cell[axis] as f64 + 1.0 } else { cell[axis] as f64 };
+            let boundary = if step[axis] > 0 {
+                cell[axis] as f64 + 1.0
+            } else {
+                cell[axis] as f64
+            };
             next[axis] = ((boundary - origin[axis]) / dir[axis]).max(0.0);
             delta[axis] = 1.0 / dir[axis].abs();
         }
@@ -41,9 +53,17 @@ pub fn raycast(
     let mut previous = None;
     let mut distance = 0.0;
     loop {
-        let block = BlockPosition { x: cell[0], y: cell[1], z: cell[2] };
+        let block = BlockPosition {
+            x: cell[0],
+            y: cell[1],
+            z: cell[2],
+        };
         if occupied(block) {
-            return Some(BlockHit { block, previous, distance });
+            return Some(BlockHit {
+                block,
+                previous,
+                distance,
+            });
         }
         let axis = if next[0] <= next[1] && next[0] <= next[2] {
             0
