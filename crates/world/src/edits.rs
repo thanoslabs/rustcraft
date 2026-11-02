@@ -3,7 +3,7 @@
 use rustcraft_core::{ChunkPos, LocalPos, split_coordinate};
 use std::collections::HashMap;
 
-use crate::BlockState;
+use crate::{BlockState, ChunkSection};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct BlockPosition {
@@ -103,5 +103,58 @@ mod tests {
             edits.edits_for_chunk(ChunkPos { x: 0, y: 0, z: 0 }).count(),
             1
         );
+    }
+}
+
+impl WorldEdits {
+    /// Apply player edits to a regenerated chunk section before meshing.
+    /// Returns the number of stored overrides applied.
+    pub fn apply_to_section(&self, chunk: ChunkPos, section: &mut ChunkSection) -> usize {
+        let mut applied = 0;
+        for (index, block) in self.edits_for_chunk(chunk) {
+            let local = LocalPos {
+                x: (index % 16) as u8,
+                y: (index / 256) as u8,
+                z: ((index / 16) % 16) as u8,
+            };
+            section.set(local, block);
+            applied += 1;
+        }
+        applied
+    }
+}
+
+#[cfg(test)]
+mod application_tests {
+    use super::*;
+
+    #[test]
+    fn applies_mined_and_placed_blocks_to_regenerated_sections() {
+        let mut section = ChunkSection::new();
+        let mined = LocalPos::new(1, 2, 3).unwrap();
+        let placed = LocalPos::new(4, 5, 6).unwrap();
+        section.set(mined, BlockState(3));
+        let mut edits = WorldEdits::default();
+        edits.set(BlockPosition { x: 1, y: 2, z: 3 }, BlockState::AIR);
+        edits.set(BlockPosition { x: 4, y: 5, z: 6 }, BlockState(5));
+        assert_eq!(
+            edits.apply_to_section(ChunkPos { x: 0, y: 0, z: 0 }, &mut section),
+            2
+        );
+        assert_eq!(section.get(mined), BlockState::AIR);
+        assert_eq!(section.get(placed), BlockState(5));
+        assert_eq!(section.non_air_count(), 1);
+    }
+
+    #[test]
+    fn edits_do_not_leak_across_chunk_boundaries() {
+        let mut section = ChunkSection::new();
+        let mut edits = WorldEdits::default();
+        edits.set(BlockPosition { x: 16, y: 0, z: 0 }, BlockState(3));
+        assert_eq!(
+            edits.apply_to_section(ChunkPos { x: 0, y: 0, z: 0 }, &mut section),
+            0
+        );
+        assert!(section.is_empty());
     }
 }
