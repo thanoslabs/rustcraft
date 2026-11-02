@@ -1,5 +1,9 @@
 //! Shared mining and placement rules for generated terrain with player overrides.
-use crate::{BlockState, edits::{BlockPosition, WorldEdits}, terrain::generate_section};
+use crate::{
+    BlockState,
+    edits::{BlockPosition, WorldEdits},
+    terrain::generate_section,
+};
 use rustcraft_core::ChunkPos;
 
 pub struct EditableWorld {
@@ -9,7 +13,10 @@ pub struct EditableWorld {
 
 impl EditableWorld {
     pub fn new(seed: u64) -> Self {
-        Self { seed, edits: WorldEdits::default() }
+        Self {
+            seed,
+            edits: WorldEdits::default(),
+        }
     }
 
     pub fn block(&self, position: BlockPosition) -> BlockState {
