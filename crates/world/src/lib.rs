@@ -77,3 +77,9 @@ pub mod streaming;
 pub mod blocks;
 
 pub mod inventory;
+
+pub mod crafting;
+
+pub mod survival;
+
+pub mod edits;
